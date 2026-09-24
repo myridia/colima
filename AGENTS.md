@@ -23,6 +23,7 @@ gitignored.
 | 3 | Stop — `compose down` + `colima stop` |
 | 4 | Status — VM + docker context + stack |
 | 5 | Dev — open `myridia/opencode` in kitty; mounts `site/` + SSH identity keys read-only |
+| 6 | Clean — stack + containers + volumes removed (docker-projects: cleanup task mandatory) |
 
 ## Conventions
 - No comments in code unless asked.

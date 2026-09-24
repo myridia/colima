@@ -5,6 +5,13 @@ set -euo pipefail
 # dev container. Usage: ./ask.sh  (menu)   or   ./ask.sh <task-id>
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="$ROOT/dockers/docker-compose.yml"
+
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE=(docker compose -f "$COMPOSE_FILE")
+else
+  COMPOSE=(docker-compose -f "$COMPOSE_FILE")
+fi
 
 setup() {
   OS="$(uname -s)"
@@ -113,8 +120,8 @@ setup() {
 start() {
   colima start
   docker context use colima >/dev/null
-  docker compose -f "$ROOT/dockers/docker-compose.yml" up -d
-  docker compose -f "$ROOT/dockers/docker-compose.yml" ps
+  "${COMPOSE[@]}" up -d
+  "${COMPOSE[@]}" ps
 
   echo ""
   echo "Open:      http://localhost:8080"
@@ -122,9 +129,16 @@ start() {
 }
 
 stop() {
-  docker compose -f "$ROOT/dockers/docker-compose.yml" down
+  "${COMPOSE[@]}" down
   colima stop
   echo "Stack down, VM stopped."
+}
+
+clean() {
+  "${COMPOSE[@]}" down -v
+  docker rm -f colimatest_web colimatest_api 2>/dev/null || true
+  docker volume prune -f
+  echo "Stack containers + volumes removed."
 }
 
 status() {
@@ -132,7 +146,7 @@ status() {
   echo ""
   docker context show 2>/dev/null || true
   echo ""
-  docker compose -f "$ROOT/dockers/docker-compose.yml" ps 2>/dev/null || true
+  "${COMPOSE[@]}" ps 2>/dev/null || true
 }
 
 dev() {
@@ -181,6 +195,7 @@ menu() {
   printf "  │  3  │ Stop — stack down + stop VM                  │\n"
   printf "  │  4  │ Status — VM / docker context / stack         │\n"
   printf "  │  5  │ Dev — open opencode dev container            │\n"
+  printf "  │  6  │ Clean — remove stack containers + volumes    │\n"
   printf "  │  0  │ Exit                                         │\n"
   printf "  └─────┴──────────────────────────────────────────────┘\n\n"
 }
@@ -192,6 +207,7 @@ run() {
     3) stop ;;
     4) status ;;
     5) dev ;;
+    6) clean ;;
     0) return 0 ;;
     *) echo "Unknown task: $1" >&2; return 1 ;;
   esac

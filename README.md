@@ -40,6 +40,7 @@ http://localhost:8080 (details at `/api/`). Tear down with `./ask.sh 3`.
 | 3 | Stop — `compose down` + stop VM |
 | 4 | Status — VM / docker context / stack |
 | 5 | Dev — open the `myridia/opencode` container (site/ + SSH keys mounted) |
+| 6 | Clean — remove stack containers + volumes |
 
 ## Requirements
 
