@@ -34,8 +34,10 @@ elif [ "$OS" = "Linux" ]; then
   sudo apt-get update
   sudo apt-get install -y docker.io docker-compose qemu-system-x86 qemu-utils
 
-  LATEST="$(curl -fsSL https://api.github.com/repos/abiosoft/colima/releases/latest \
-    | grep -m1 '"tag_name"' | cut -d'"' -f4)"
+  LATEST_JSON="$(mktemp)"
+  trap 'rm -f "$LATEST_JSON"' EXIT
+  curl -fsSL -o "$LATEST_JSON" https://api.github.com/repos/abiosoft/colima/releases/latest
+  LATEST="$(grep -m1 '"tag_name"' "$LATEST_JSON" | cut -d'"' -f4)"
   COLI_VERSION="${LATEST#v}"
 
   echo "==> Installing colima ${COLI_VERSION} (${REL_ARCH})"
