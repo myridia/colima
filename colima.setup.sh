@@ -29,6 +29,13 @@ if [ "$OS" = "Darwin" ]; then
 
   echo "==> Installing colima + docker CLI (brew)"
   brew install colima docker docker-compose
+
+  echo "==> Installing kitty (terminal for ./dev.sh)"
+  if [ -x /Applications/kitty.app/Contents/MacOS/kitty ]; then
+    echo "kitty already installed"
+  else
+    brew install --cask kitty
+  fi
 elif [ "$OS" = "Linux" ]; then
   echo "==> Installing qemu + docker CLI (apt)"
   sudo apt-get update

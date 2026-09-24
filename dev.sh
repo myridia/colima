@@ -5,7 +5,20 @@ set -euo pipefail
 # in a new kitty window, on the colima docker engine. Usage: ./dev.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KITTY="${KITTY:-/home/veto/.local/kitty.app/bin/kitty}"
+
+if [ -z "${KITTY:-}" ]; then
+  if command -v kitty >/dev/null 2>&1; then
+    KITTY="$(command -v kitty)"
+  elif [ -x /home/veto/.local/kitty.app/bin/kitty ]; then
+    KITTY=/home/veto/.local/kitty.app/bin/kitty
+  elif [ -x /Applications/kitty.app/Contents/MacOS/kitty ]; then
+    KITTY=/Applications/kitty.app/Contents/MacOS/kitty
+  else
+    echo "ERROR: kitty not found. Install it or run with KITTY=/path/to/kitty ./dev.sh" >&2
+    exit 1
+  fi
+fi
+echo "==> kitty: $KITTY"
 
 colima start >/dev/null
 docker context use colima >/dev/null
