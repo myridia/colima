@@ -36,29 +36,53 @@ elif [ "$OS" = "Linux" ]; then
 
   LATEST_JSON="$(mktemp)"
   trap 'rm -f "$LATEST_JSON"' EXIT
-  curl -fsSL -o "$LATEST_JSON" https://api.github.com/repos/abiosoft/colima/releases/latest
-  LATEST="$(grep -m1 '"tag_name"' "$LATEST_JSON" | cut -d'"' -f4)"
-  COLI_VERSION="${LATEST#v}"
 
-  echo "==> Installing colima ${COLI_VERSION} (${REL_ARCH})"
-  DEST="$(cd "$(dirname "$0")" && pwd)/colima.bin"
-  URL="https://github.com/abiosoft/colima/releases/download/v${COLI_VERSION}/colima-${REL_OS}-${REL_ARCH}"
+  if ! command -v colima >/dev/null 2>&1; then
+    curl -fsSL -o "$LATEST_JSON" https://api.github.com/repos/abiosoft/colima/releases/latest
+    LATEST="$(grep -m1 '"tag_name"' "$LATEST_JSON" | cut -d'"' -f4)"
+    COLI_VERSION="${LATEST#v}"
 
-  rm -f "$DEST.part"
-  if ! curl -fsSL --retry 3 -o "$DEST.part" "$URL"; then
-    echo "curl failed (23 = write). Trying wget..."
+    echo "==> Installing colima ${COLI_VERSION} (${REL_ARCH})"
+    DEST="$(cd "$(dirname "$0")" && pwd)/colima.bin"
+    URL="https://github.com/abiosoft/colima/releases/download/v${COLI_VERSION}/colima-${REL_OS}-${REL_ARCH}"
+
     rm -f "$DEST.part"
-    if ! command -v wget >/dev/null 2>&1 || ! wget -q -O "$DEST.part" "$URL"; then
-      echo "ERROR: both curl and wget failed. Diagnostics:" >&2
-      df -h "$(dirname "$DEST")" >&2
-      echo "Try manually:" >&2
-      echo "  wget -O /tmp/colima '$URL' && ls -l /tmp/colima" >&2
+    if ! curl -fsSL --retry 3 -o "$DEST.part" "$URL"; then
+      echo "curl failed (23 = write). Trying wget..."
       rm -f "$DEST.part"
-      exit 1
+      if ! command -v wget >/dev/null 2>&1 || ! wget -q -O "$DEST.part" "$URL"; then
+        echo "ERROR: both curl and wget failed. Diagnostics:" >&2
+        df -h "$(dirname "$DEST")" >&2
+        echo "Try manually:" >&2
+        echo "  wget -O /tmp/colima '$URL' && ls -l /tmp/colima" >&2
+        rm -f "$DEST.part"
+        exit 1
+      fi
     fi
+    mv "$DEST.part" "$DEST"
+    sudo install -m 0755 "$DEST" /usr/local/bin/colima
+  else
+    echo "==> colima already installed: $(command -v colima)"
   fi
-  mv "$DEST.part" "$DEST"
-  sudo install -m 0755 "$DEST" /usr/local/bin/colima
+
+  if ! command -v limactl >/dev/null 2>&1; then
+    curl -fsSL -o "$LATEST_JSON" https://api.github.com/repos/lima-vm/lima/releases/latest
+    LATEST="$(grep -m1 '"tag_name"' "$LATEST_JSON" | cut -d'"' -f4)"
+    LIMA_VERSION="${LATEST#v}"
+
+    echo "==> Installing lima (limactl) ${LIMA_VERSION} (${REL_ARCH})"
+    LIMA_TMP="$(mktemp -d)"
+    LIMA_URL="https://github.com/lima-vm/lima/releases/download/v${LIMA_VERSION}/lima-${LIMA_VERSION}-${REL_OS}-${REL_ARCH}.tar.gz"
+    curl -fsSL --retry 3 -o "$LIMA_TMP/lima.tgz" "$LIMA_URL"
+    tar -xzf "$LIMA_TMP/lima.tgz" -C "$LIMA_TMP"
+    sudo install -m 0755 "$LIMA_TMP/bin/limactl" "$LIMA_TMP/bin/lima" /usr/local/bin/
+    sudo mkdir -p /usr/local/share/man
+    sudo cp -R "$LIMA_TMP/share/lima" /usr/local/share/
+    sudo cp -R "$LIMA_TMP/share/man" /usr/local/share/man/
+    rm -rf "$LIMA_TMP"
+  else
+    echo "==> limactl already installed: $(command -v limactl)"
+  fi
 else
   echo "ERROR: unsupported OS: ${OS}" >&2
   exit 1

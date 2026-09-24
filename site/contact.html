@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My Website</title>
+  <title>Contact | My Website</title>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -19,25 +19,20 @@
   </header>
 
   <main class="container">
-    <section class="hero">
-      <h1>Welcome to My Website</h1>
-      <p>A clean, simple, and standard website template.</p>
-    </section>
+    <h1>Contact</h1>
+    <p>Send us a message using the form below.</p>
+    <form class="contact-form" action="#" method="post">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" required>
 
-    <section class="features">
-      <article>
-        <h2>Simple</h2>
-        <p>Plain HTML and CSS, easy to read and maintain.</p>
-      </article>
-      <article>
-        <h2>Responsive</h2>
-        <p>Layout adapts to phones, tablets, and desktops.</p>
-      </article>
-      <article>
-        <h2>Fast</h2>
-        <p>No frameworks, no build step, loads instantly.</p>
-      </article>
-    </section>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required>
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+
+      <button type="submit">Send</button>
+    </form>
   </main>
 
   <footer class="site-footer">
